@@ -14,3 +14,11 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.full-height {
+  height: calc(100vh - 120px);
+}
+
+.main-nav {
+  padding: 0 10px;
+}

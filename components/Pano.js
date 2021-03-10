@@ -1,0 +1,81 @@
+import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
+import Marzipano from "marzipano";
+
+class Pano extends PureComponent {
+  static displayName = "Pano";
+
+  static propTypes = {
+    data: PropTypes.object.isRequired,
+  };
+
+  componentDidMount() {
+    const {
+      data: {
+        settings: { mouseViewMode },
+        scenes,
+      },
+    } = this.props;
+
+    const viewerOpts = {
+      controls: { mouseViewMode },
+    };
+
+    this.viewer = new Marzipano.Viewer(this.pano, viewerOpts);
+
+    const panoScenes = scenes.map((data) => {
+      const { id, initialViewParameters, levels, faceSize } = data;
+      // You need use a URL hosted with pictures /tiles
+      const urlPrefix = "//www.marzipano.net/media";
+      const source = Marzipano.ImageUrlSource.fromString(
+        urlPrefix + "/" + id + "/{z}/{f}/{y}/{x}.jpg",
+        { cubeMapPreviewUrl: urlPrefix + "/" + id + "/preview.jpg" }
+      );
+      var limiter = Marzipano.RectilinearView.limit.traditional(
+        faceSize,
+        (100 * Math.PI) / 180,
+        (120 * Math.PI) / 180
+      );
+      var view = new Marzipano.RectilinearView(initialViewParameters, limiter);
+      var geometry = new Marzipano.CubeGeometry(levels);
+
+      const scene = this.viewer.createScene({
+        source: source,
+        geometry: geometry,
+        view: view,
+        pinFirstLevel: true,
+      });
+
+      return {
+        data: data,
+        scene: scene,
+        view: view,
+      };
+    });
+
+    panoScenes[0].scene.switchTo();
+  }
+
+  render() {
+    return (
+      <div className="pano" ref={(pano) => (this.pano = pano)}>
+        <h2 className="heading">Demo</h2>
+        <style jsx>{`
+          .pano{
+            position: relative;
+            height: calc(100vh - 72px); //allow for nav height
+          }
+          .heading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1;
+            color: white;
+          }
+        `}</style>
+      </div>
+    );
+  }
+}
+
+export default Pano;
